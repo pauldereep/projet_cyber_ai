@@ -31,12 +31,14 @@ if "Timestamp" in df_equal.columns:
     df_equal["Timestamp"] = pd.to_datetime(df_equal["Timestamp"], format="%d/%m/%Y %H:%M:%S", errors='coerce')
     df_equal["Timestamp"] = df_equal["Timestamp"].astype(int) / 10**9  # Convertir en secondes
 
-# Séparation des données en train (80%) et test (20%)
+# Séparation des données en train (80%) et test (30%)
 train, test = train_test_split(df_equal, test_size=0.3, random_state=RANDOM_STATE_SEED)
 
 # Remplacement des valeurs infinies par NaN
 train.replace([np.inf, -np.inf], np.nan, inplace=True)
 test.replace([np.inf, -np.inf], np.nan, inplace=True)
+train.dropna(inplace=True)
+test.dropna(inplace=True)
 
 # Sélection des colonnes numériques pour le scaling
 numerical_columns = [col for col in df_equal.columns if col not in ["Label"]]
