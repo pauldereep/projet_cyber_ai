@@ -11,7 +11,7 @@ import seaborn as sns
 RANDOM_STATE_SEED = 12
 
 # Charger le dataset
-df_dataset = pd.read_csv("./dataset/02-14-2018.csv")
+df_dataset = pd.read_csv("./data/02-14-2018.csv")
 
 # Supprimer les valeurs manquantes initiales
 df_dataset.dropna(inplace=True)
