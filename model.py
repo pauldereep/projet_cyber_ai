@@ -2,59 +2,28 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix 
 import seaborn as sns
+import joblib
+
 
 # Fixer une graine aléatoire pour la reproductibilité
 RANDOM_STATE_SEED = 12
 
 # Charger les dataset
-df_dataset1 = pd.read_csv("./dataset/clean/02-14-2018.csv")
-df_dataset2 = pd.read_csv("./dataset/clean/02-15-2018.csv")
-df_dataset3 = pd.read_csv("./dataset/clean/02-16-2018.csv")
-##df_dataset4 = pd.read_csv("./dataset/clean/02-20-2018.csv")
-df_dataset5 = pd.read_csv("./dataset/clean/02-21-2018.csv")
-##df_dataset8 = pd.read_csv("./dataset/clean/02-28-2018.csv")
-##df_dataset9 = pd.read_csv("./dataset/clean/03-01-2018.csv")
-df_dataset10 = pd.read_csv("./dataset/clean/03-02-2018.csv")
+dataset = pd.read_csv("hf://datasets/pauldereep/projet_cyber_ai/dataset.csv")
 
-# Fusionner avec l'ancien dataset
-df_combined = pd.concat([df_dataset1, df_dataset2, df_dataset3, df_dataset5, df_dataset10], axis=0)
-# Équilibrer le dataset (même nombre d'exemples pour chaque classe)
-df1 = df_combined[df_combined["Label"] == "Benign"][:10000]
-df2 = df_combined[(df_combined["Label"] == "FTP-BruteForce")][:10000]
-df3 = df_combined[df_combined["Label"] == "SSH-Bruteforce"][:10000]
-df4 = df_combined[df_combined["Label"] == "DoS attacks-GoldenEye"][:10000]
-df5 = df_combined[df_combined["Label"] == "DoS attacks-Slowloris"][:10000]
-df6 = df_combined[df_combined["Label"] == "DoS attacks-SlowHTTPTest"][:10000]
-df7 = df_combined[df_combined["Label"] == "DoS attacks-Hulk"][:10000]
-df8 = df_combined[df_combined["Label"] == "DDoS attacks-LOIC-HTTP"][:10000]
-df9 = df_combined[df_combined["Label"] == "DDOS attack-HOIC"][:10000]
-df10 = df_combined[df_combined["Label"] == "Bot"][:10000]
-print(len(df10))
-df_equal = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10], axis=0)
-# Remplacement des labels par des valeurs numériques
-df_equal.replace(to_replace="Benign", value=0, inplace=True)
-df_equal.replace(to_replace="SSH-Bruteforce", value=1, inplace=True)
-df_equal.replace(to_replace="FTP-BruteForce", value=2, inplace=True)
-df_equal.replace(to_replace="DoS attacks-GoldenEye", value=3, inplace=True)
-df_equal.replace(to_replace="DoS attacks-Slowloris", value=4, inplace=True)
-df_equal.replace(to_replace="DoS attacks-SlowHTTPTest", value=5, inplace=True)
-df_equal.replace(to_replace="DoS attacks-Hulk", value=6, inplace=True)
-df_equal.replace(to_replace="DDoS attacks-LOIC-HTTP", value=7, inplace=True)
-df_equal.replace(to_replace="DDOS attack-HOIC", value=8, inplace=True)
-df_equal.replace(to_replace="Infilteration", value=9, inplace=True)
-df_equal.replace(to_replace="Bot", value=10, inplace=True)
-df_equal.to_csv("dataset_combined.csv")
+
+
 # Vérifier si la colonne Timestamp existe et la convertir en format numérique
-if "Timestamp" in df_equal.columns:
-    df_equal["Timestamp"] = pd.to_datetime(df_equal["Timestamp"], format="%d/%m/%Y %H:%M:%S", errors='coerce')
-    df_equal["Timestamp"] = df_equal["Timestamp"].astype(int) / 10**9  # Convertir en secondes
+if "Timestamp" in dataset.columns:
+    dataset["Timestamp"] = pd.to_datetime(dataset["Timestamp"], format="%d/%m/%Y %H:%M:%S", errors='coerce')
+    dataset["Timestamp"] = dataset["Timestamp"].astype(int) / 10**9  # Convertir en secondes
 
 # Séparation des données en train (80%) et test (20%)
-train, test = train_test_split(df_equal, test_size=0.3, random_state=RANDOM_STATE_SEED)
+train, test = train_test_split(dataset, test_size=0.3, random_state=RANDOM_STATE_SEED)
 
 # Remplacement des valeurs infinies par NaN
 train.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -64,7 +33,7 @@ train.dropna(inplace=True)
 test.dropna(inplace=True)
 
 # Sélection des colonnes numériques pour le scaling
-numerical_columns = [col for col in df_equal.columns if col not in ["Label"]]
+numerical_columns = [col for col in dataset.columns if col not in ["Label"]]
 
 # Appliquer la normalisation Min-Max
 scaler = MinMaxScaler().fit(train[numerical_columns])
@@ -124,6 +93,13 @@ print(conf_matrix)
 print("\n Classification Report:")
 print(class_report)
 
+
+# Validation croisée avec 5 folds
+cv_scores = cross_val_score(log_reg, X_train, y_train, cv=5)
+
+print(f"\n Scores de validation croisée : {cv_scores}")
+print(f" Moyenne des scores de validation croisée : {cv_scores.mean():.4f}")
+
 # Correction de l'affichage des catégories sur la heatmap
 category_labels = ["Benign", "SSH-Bruteforce", "FTP-BruteForce", 
                    "DoS attacks-GoldenEye", "DoS attacks-Slowloris", 
@@ -150,5 +126,8 @@ plt.ylabel("Nombre de prédictions")
 plt.title("Distribution des niveaux de confiance")
 plt.xticks([1, 2, 3], labels=["Bas", "Moyen", "Élevé"])
 plt.show()
+
+# Sauvegarde du modèle et du scaler
+joblib.dump(log_reg, 'logistic_regression_model.pkl')
 
 
