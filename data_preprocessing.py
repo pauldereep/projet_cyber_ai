@@ -39,6 +39,8 @@ df_equal.replace(to_replace="DoS attacks-Hulk", value=6, inplace=True)
 df_equal.replace(to_replace="DDoS attacks-LOIC-HTTP", value=7, inplace=True)
 df_equal.replace(to_replace="DDOS attack-HOIC", value=8, inplace=True)
 df_equal.replace(to_replace="Bot", value=9, inplace=True)
+
+
 # Vérifier si la colonne Timestamp existe et la convertir en format numérique
 if "Timestamp" in df_equal.columns:
     df_equal["Timestamp"] = pd.to_datetime(df_equal["Timestamp"], format="%d/%m/%Y %H:%M:%S", errors='coerce')
