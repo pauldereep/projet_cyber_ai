@@ -11,10 +11,9 @@ import seaborn as sns
 RANDOM_STATE_SEED = 12
 
 
-df_equal = pd.read_csv("dataset_combined.csv")
+df_equal = pd.read_csv("hf://datasets/pauldereep/projet_cyber_ai/dataset_combined.csv")
 # Séparation des données en train (80%) et test (20%)
 train, test = train_test_split(df_equal, test_size=0.2, random_state=RANDOM_STATE_SEED)
-
 
 
 # Sélection des colonnes numériques pour le scaling
