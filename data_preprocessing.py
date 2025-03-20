@@ -7,9 +7,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import seaborn as sns
 
-# Fixer une graine aléatoire pour la reproductibilité
-RANDOM_STATE_SEED = 12
-
 # Charger les dataset
 df_dataset1 = pd.read_csv("./dataset/clean/02-14-2018.csv")
 df_dataset2 = pd.read_csv("./dataset/clean/02-15-2018.csv")
@@ -42,10 +39,23 @@ df_equal.replace(to_replace="DoS attacks-Hulk", value=6, inplace=True)
 df_equal.replace(to_replace="DDoS attacks-LOIC-HTTP", value=7, inplace=True)
 df_equal.replace(to_replace="DDOS attack-HOIC", value=8, inplace=True)
 df_equal.replace(to_replace="Bot", value=9, inplace=True)
-df_equal.to_csv("dataset_combined.csv")
 # Vérifier si la colonne Timestamp existe et la convertir en format numérique
 if "Timestamp" in df_equal.columns:
     df_equal["Timestamp"] = pd.to_datetime(df_equal["Timestamp"], format="%d/%m/%Y %H:%M:%S", errors='coerce')
     df_equal["Timestamp"] = df_equal["Timestamp"].astype(int) / 10**9  # Convertir en secondes
+    df_equal.replace([np.inf, -np.inf], np.nan, inplace=True)
+    df_equal.dropna(inplace=True)
+# Séparation des données en train (80%) et test (20%)
+train, test = train_test_split(df_equal, test_size=0.2, random_state=RANDOM_STATE_SEED)
+
+
+
+# Sélection des colonnes numériques pour le scaling
+numerical_columns = [col for col in df_equal.columns if col not in ["Label"]]
+
+# Appliquer la normalisation Min-Max
+scaler = MinMaxScaler().fit(train[numerical_columns])
+train[numerical_columns] = scaler.transform(train[numerical_columns])
+test[numerical_columns] = scaler.transform(test[numerical_columns])
 df_equal.to_csv("dataset_combined.csv")
-print("Data processing done.")
+print("Data processing done!")
