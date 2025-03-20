@@ -45,6 +45,10 @@ if "Timestamp" in df_equal.columns:
     df_equal["Timestamp"] = df_equal["Timestamp"].astype(int) / 10**9  # Convertir en secondes
     df_equal.replace([np.inf, -np.inf], np.nan, inplace=True)
     df_equal.dropna(inplace=True)
+
+
+RANDOM_STATE_SEED = 42
+
 # Séparation des données en train (80%) et test (20%)
 train, test = train_test_split(df_equal, test_size=0.2, random_state=RANDOM_STATE_SEED)
 
