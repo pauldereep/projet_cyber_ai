@@ -8,12 +8,11 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import seaborn as sns
 
 # Charger les dataset
-df_dataset1 = pd.read_csv("./dataset/clean/02-14-2018.csv")
-df_dataset2 = pd.read_csv("./dataset/clean/02-15-2018.csv")
-df_dataset3 = pd.read_csv("./dataset/clean/02-16-2018.csv")
-df_dataset5 = pd.read_csv("./dataset/clean/02-21-2018.csv")
-df_dataset10 = pd.read_csv("./dataset/clean/03-02-2018.csv")
-
+df_dataset1 = pd.read_csv("hf://datasets/pauldereep/projet_cyber_ai/02-14-2018.csv")
+df_dataset2 = pd.read_csv("hf://datasets/pauldereep/projet_cyber_ai/02-15-2018.csv")
+df_dataset3 = pd.read_csv("hf://datasets/pauldereep/projet_cyber_ai/02-16-2018.csv")
+df_dataset5 = pd.read_csv("hf://datasets/pauldereep/projet_cyber_ai/02-21-2018.csv")
+df_dataset10 = pd.read_csv("hf://datasets/pauldereep/projet_cyber_ai/03-02-2018.csv")
 # Fusionner avec l'ancien dataset
 df_combined = pd.concat([df_dataset1, df_dataset2, df_dataset3, df_dataset5, df_dataset10], axis=0)
 # Équilibrer le dataset (même nombre d'exemples pour chaque classe)
@@ -27,6 +26,16 @@ df7 = df_combined[df_combined["Label"] == "DoS attacks-Hulk"][:10000]
 df8 = df_combined[df_combined["Label"] == "DDoS attacks-LOIC-HTTP"][:10000]
 df9 = df_combined[df_combined["Label"] == "DDOS attack-HOIC"][:10000]
 df10 = df_combined[df_combined["Label"] == "Bot"][:10000]
+df1 = df1.reset_index(drop=True)
+df2 = df2.reset_index(drop=True)
+df3 = df3.reset_index(drop=True)
+df4 = df4.reset_index(drop=True)
+df5 = df5.reset_index(drop=True)
+df6 = df6.reset_index(drop=True)
+df7 = df7.reset_index(drop=True)
+df8 = df8.reset_index(drop=True)
+df9 = df9.reset_index(drop=True)
+df10 = df10.reset_index(drop=True)
 df_equal = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8, df9, df10], axis=0)
 # Remplacement des labels par des valeurs numériques
 df_equal.replace(to_replace="Benign", value=0, inplace=True)
@@ -39,29 +48,12 @@ df_equal.replace(to_replace="DoS attacks-Hulk", value=6, inplace=True)
 df_equal.replace(to_replace="DDoS attacks-LOIC-HTTP", value=7, inplace=True)
 df_equal.replace(to_replace="DDOS attack-HOIC", value=8, inplace=True)
 df_equal.replace(to_replace="Bot", value=9, inplace=True)
-
-
 # Vérifier si la colonne Timestamp existe et la convertir en format numérique
 if "Timestamp" in df_equal.columns:
     df_equal["Timestamp"] = pd.to_datetime(df_equal["Timestamp"], format="%d/%m/%Y %H:%M:%S", errors='coerce')
     df_equal["Timestamp"] = df_equal["Timestamp"].astype(int) / 10**9  # Convertir en secondes
     df_equal.replace([np.inf, -np.inf], np.nan, inplace=True)
     df_equal.dropna(inplace=True)
-
-
-RANDOM_STATE_SEED = 42
-
-# Séparation des données en train (80%) et test (20%)
-train, test = train_test_split(df_equal, test_size=0.2, random_state=RANDOM_STATE_SEED)
-
-
-
-# Sélection des colonnes numériques pour le scaling
-numerical_columns = [col for col in df_equal.columns if col not in ["Label"]]
-
-# Appliquer la normalisation Min-Max
-scaler = MinMaxScaler().fit(train[numerical_columns])
-train[numerical_columns] = scaler.transform(train[numerical_columns])
-test[numerical_columns] = scaler.transform(test[numerical_columns])
-df_equal.to_csv("dataset_combined.csv")
+# Sauvegarder le dataset fusionné
+df_equal.to_csv("dataset_combined.csv", index=False)
 print("Data processing done!")
